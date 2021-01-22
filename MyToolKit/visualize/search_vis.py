@@ -7,7 +7,7 @@ class PlotSearch(object):
     _print = True
     def __init__(self, saved_pkl, sort=True):
         self.data = load_pkl(saved_pkl)
-        if sort:
+        if sort and isinstance(self.data, dict):
             self.data = self._sort_data_byKey(self.data)
 
     @staticmethod
@@ -46,7 +46,6 @@ class PlotSearch(object):
         fig.canvas.mpl_connect('pick_event', onpick)
         if save_name:
             save_name = time.strftime("%Y%m%d%H%M%S") if save_name=='time' else save_name
-            # time.strftime()
             plt.savefig("./{}.jpg".format(save_name))
 
         return pick_history
@@ -69,15 +68,29 @@ class PlotSearch(object):
     def plot_detsearch(self, res_key= "eval_res" , 
                         xkeys="tlats", 
                         ykeys=["car/pick_up/emergency_ap", "bigcar_ap", "bus_ap"],
-                        save_name=None,
-                        record=True
+                        fig_save_name=None,
+                        record=True,
+                        record_path='./'
+
                         ):
         """ Plot latency-performance curve for DetSearch.
         It's format is : {"Net_ID": {"Eval": {},  "Lat":{} , ...  } }
         Return numpy """
         latency = []
         performance = []
-        data_items = self.data.items() if isinstance(self.data, dict) else self.data
+
+        if isinstance(self.data, dict):
+            data_items = self.data.items() 
+        elif isinstance(self.data, list):
+            if isinstance(self.data[0], tuple):
+                # sort dict
+                data_items = self.data 
+            elif isinstance(self.data[0], dict):
+                # re-sampler save format
+                data_items = enumerate(self.data)
+            else:
+                raise TypeError("check data and element type")
+
         for net_id, net_info in data_items:
             res = net_info[res_key]
             xdata = self._get_mkeys(net_info, xkeys)
@@ -92,8 +105,8 @@ class PlotSearch(object):
 
         latency = np.array(latency)
         performance = np.array(performance)
-        record_history = PlotSearch.plot(latency, performance, str(xkeys), str(ykeys), self.data, save_name)
+        record_history = PlotSearch.plot(latency, performance, str(xkeys), str(ykeys), self.data, fig_save_name)
         plt.show()
         if record:
             print("Recoding the point you have choosen (Number: {}) to {}".format(len(record_history),"./"))
-            save_to_json("./", record_history)
+            save_to_json(record_path, record_history)

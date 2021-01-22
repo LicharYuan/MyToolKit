@@ -2,6 +2,7 @@
 import pickle
 import os
 import json
+from pathlib import Path
 
 def load_pkl(filename):
     with open(filename, "rb") as f:
@@ -14,6 +15,13 @@ def load_json(filename):
 def check_path(path):
     if not os.path.exists(path):
         os.makedirs(path)
+
+def check_filename(filename):
+    # abs path or relative path
+    check_path(os.path.dirname(filename))
+    if not os.path.exists(filename):
+        Path(filename).touch()
+
 
 def save_to_pkl(save_path, save_content, save_name="dict"):
     check_path(save_path)
