@@ -56,6 +56,7 @@ class PlotSearch(object):
         try:
             if isinstance(keys, (list, tuple)):
                 vals = np.array([res[key] for key in keys])
+                print
             elif isinstance(keys, (str)):
                 vals = np.array(res[keys])
             else:
@@ -64,21 +65,7 @@ class PlotSearch(object):
         except KeyError:
             print(f"Try to get {keys} from {res.keys()}")
 
-
-    def plot_detsearch(self, res_key= "eval_res" , 
-                        xkeys="tlats", 
-                        ykeys=["car/pick_up/emergency_ap", "bigcar_ap", "bus_ap"],
-                        fig_save_name=None,
-                        record=True,
-                        record_path='./'
-
-                        ):
-        """ Plot latency-performance curve for DetSearch.
-        It's format is : {"Net_ID": {"Eval": {},  "Lat":{} , ...  } }
-        Return numpy """
-        latency = []
-        performance = []
-
+    def _preprocess_data(self):
         if isinstance(self.data, dict):
             data_items = self.data.items() 
         elif isinstance(self.data, list):
@@ -90,7 +77,22 @@ class PlotSearch(object):
                 data_items = enumerate(self.data)
             else:
                 raise TypeError("check data and element type")
+        return data_items
 
+    def plot_detsearch(self, res_key= "eval_res" , 
+                        xkeys="tlats", 
+                        ykeys=["car/pick_up/emergency_ap", "bigcar_ap", "bus_ap"],
+                        fig_save_name=None,
+                        record=True,
+                        record_path='./'
+                        ):
+        """ Plot latency-performance curve for DetSearch.
+        It's format is : {"Net_ID": {"Eval": {},  "Lat":{} , ...  } }
+        Return numpy """
+        latency = []
+        performance = []
+
+        data_items = self._preprocess_data()
         for net_id, net_info in data_items:
             res = net_info[res_key]
             xdata = self._get_mkeys(net_info, xkeys)
@@ -110,3 +112,40 @@ class PlotSearch(object):
         if record:
             print("Recoding the point you have choosen (Number: {}) to {}".format(len(record_history),"./"))
             save_to_json(record_path, record_history)
+    
+    def plot_mixsearch(self, res_key= "eval_res" , 
+                        xkeys="tlats", 
+                        ykeys_det=["car_ap", "bigcar_ap"],
+                        ykeys_kp = ["recall"],
+                        ratio = 0.7,
+                        fig_save_name=None,
+                        record=True,
+                        record_path='./'
+                        ):
+        assert ratio >=0 and ratio <=1
+        latency = []
+        performance = []
+        data_items = self._preprocess_data()
+        for net_id, net_info in data_items:
+            res = net_info[res_key]
+            xdata = self._get_mkeys(net_info, xkeys)
+            ydata_det = self._get_mkeys(res, ykeys_det)
+            ydata_kp = self._get_mkeys(res, ykeys_kp)
+            # print(ydata_kp, ydata_det)
+            ydata = ydata_det * ratio + ydata_kp * (1-ratio)
+            if xdata is not None and ydata is not None:
+                latency.append(xdata)
+                performance.append(ydata)
+
+        if len(latency) == 0:
+            exit_info = "###########\n NO DATA \n  0A0  \n###########"
+            exit(exit_info)
+
+        latency = np.array(latency)
+        performance = np.array(performance)
+        record_history = PlotSearch.plot(latency, performance, str(xkeys), str(ykeys_det+ykeys_kp)+str(ratio), self.data, fig_save_name)
+        plt.show()
+        if record:
+            print("Recoding the point you have choosen (Number: {}) to {}".format(len(record_history),"./"))
+            save_to_json(record_path, record_history)
+    

@@ -24,7 +24,7 @@ class _ColorfulFormatter(logging.Formatter):
             return log
         return prefix + " " + log
 
-def setup_logger(output=None, rank=0, color=True, name="DetSearch", save_all_rank=False):
+def setup_logger(output=None, rank=0, color=True, name=" ", save_all_rank=False):
     logger = logging.getLogger(name)
     if name in LOGGED:
         return logger

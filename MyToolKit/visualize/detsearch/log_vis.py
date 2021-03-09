@@ -3,6 +3,7 @@ import re
 from matplotlib import pyplot as plt
 import numpy as np
 from collections.abc import Iterable
+import os
 
 def match_one_line(string, pattern):
     res = re.findall(pattern, string)
@@ -40,13 +41,15 @@ def match_log(log_path, keys):
             print(line, " >> regex error")
     return res
     
-def plot_log(log_path, keys, plot_kwargs=dict(marker='*', s=6)):
+def plot_log(log_path, keys, plot_kwargs=dict(marker='*', s=6), savepath='./'):
     match_res = match_log(log_path, keys)
     for key in keys:
         fig,ax = plt.subplots()
         ax.scatter(match_res['iter'], match_res[key], **plot_kwargs)
         ax.plot(match_res['iter'], match_res[key])
-        ax.set_title('Iter-%s'%key)
+        title = 'Iter-%s'%key
+        ax.set_title(title)
+        plt.savefig(os.path.join(savepath, "{}.jpg".format(title)))
 
 
 if __name__ == "__main__":
@@ -56,9 +59,6 @@ if __name__ == "__main__":
     # print(m)
     plot_log(log_path, keys)
     plt.show()
-
     string = 'Iter: 1665'
-    p = r'Iter: '
-    print(match_one_line(string, p).group(0))
 
 
