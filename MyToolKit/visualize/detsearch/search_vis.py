@@ -3,6 +3,17 @@ import numpy as np
 from matplotlib import pyplot as plt
 import time 
 
+class NotCoveredDict(dict):
+    """if the key is conflict, it wont convert original data """
+    def not_covered_update(self, d):
+        d_keys = d.keys()
+        origin_keys = self.keys()
+        for key in d_keys: 
+            if key in origin_keys:
+                new_key = key + "_new"
+                d[new_key] = d.pop(key)
+        return super().update(d)
+
 class PlotSearch(object):
     _print = True
     def __init__(self, saved_pkl, sort=True):
@@ -12,10 +23,9 @@ class PlotSearch(object):
 
     @staticmethod
     def _sort_data_byKey(data):
-        # in some case will shuffle data
+        # sort by ID, after sort the data become to list, for plot pick data
         return sorted(data.items(), key=lambda x: x[0])
         
-
     @staticmethod    
     def plot(x, y, xlabel="latency", ylabel='AP', data=None, save_name='time'):
         fig, ax = plt.subplots()
@@ -56,7 +66,6 @@ class PlotSearch(object):
         try:
             if isinstance(keys, (list, tuple)):
                 vals = np.array([res[key] for key in keys])
-                print
             elif isinstance(keys, (str)):
                 vals = np.array(res[keys])
             else:
@@ -148,4 +157,79 @@ class PlotSearch(object):
         if record:
             print("Recoding the point you have choosen (Number: {}) to {}".format(len(record_history),"./"))
             save_to_json(record_path, record_history)
+
+
+class SamePlotSearch(PlotSearch):
+    """Plot Multi PKL input for SAME PKL .
+    Some latency test on Mobile and some test on 2080 Ti. 
+    support plot_mixsearch (most used)
     
+    """
+    def __init__(self, saved_pkl, **kwargs):
+        assert isinstance(saved_pkl, list)
+        self.nums_pkl = len(saved_pkl)
+        assert self.nums_pkl == 2, "current not support > 3 "
+        self.saved_pkl = saved_pkl
+        platf = kwargs.pop("platf", None)
+        self._pkl_id = range(self.nums_pkl) if platf else platf
+        self._build_data()
+
+    def _build_data(self):
+        self.data = NotCoveredDict()
+        for spkl in self.saved_pkl:
+            data = load_pkl(spkl)
+            self.data.not_covered_update(data)
+    
+    
+    @staticmethod    
+    def plot(x, y, x_new, y_new, xlabel="latency", ylabel='AP', data=None, save_name='time', x1lim=[4, 15], x2lim=[50, 200]):
+        fig, ax = plt.subplots()
+        ax_new = ax.twiny()
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.set_xlim(x1lim[0], x1lim[1])
+        ax_new.set_xlim(x2lim[0], x2lim[1])
+        ax_new.scatter(x_new, y_new, color='grey')
+        ax.scatter(x, y)            
+        
+    def plot_mixsearch(self, res_key= "eval_res" , 
+                        xkeys="tlats", 
+                        ykeys_det=["car_ap", "bigcar_ap"],
+                        ykeys_kp = ["recall"],
+                        ratio = 0.7,
+                        fig_save_name=None,
+                        x1lim=[4, 15],
+                        x2lim=[50, 200],
+                        ):
+        assert ratio >=0 and ratio <=1
+        latency = []
+        new_latency = []
+        performance = []
+        new_performance = []
+        data_items = self._preprocess_data()
+        for net_id, net_info in data_items:
+            res = net_info[res_key]
+            xdata = self._get_mkeys(net_info, xkeys)
+            ydata_det = self._get_mkeys(res, ykeys_det)
+            ydata_kp = self._get_mkeys(res, ykeys_kp)
+            # print(ydata_kp, ydata_det)
+            ydata = ydata_det * ratio + ydata_kp * (1-ratio)
+            if xdata is not None and ydata is not None:
+                if "new" in net_id:
+                    new_latency.append(xdata)
+                    new_performance.append(ydata)
+                else:
+                    latency.append(xdata)
+                    performance.append(ydata)
+
+        if len(latency) == 0:
+            exit_info = "###########\n NO DATA \n  0A0  \n###########"
+            exit(exit_info)
+
+        latency = np.array(latency)
+        performance = np.array(performance)
+        new_latency = np.array(new_latency)
+        new_performance = np.array(new_performance)
+        SamePlotSearch.plot(latency, performance, new_latency, new_performance,
+            str(xkeys), str(ykeys_det+ykeys_kp)+str(ratio), self.data, fig_save_name, x1lim, x2lim)
+        plt.show()
