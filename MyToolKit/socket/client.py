@@ -37,15 +37,8 @@ class Client(object):
         message = ClientMessage(self.sel, self.sock, addr, request)
         self.sel.register(self.sock, events, data=message)
 
-    def run(self, overwrite_host=None, 
-            overwrite_port=None, 
-            overwrite_action=None, 
-            overwrite_value=None):
-        host   = overwrite_host if overwrite_host else self.host
-        port   = overwrite_port if overwrite_port else self.port
-        action = overwrite_action if overwrite_action else self.action
-        value  = overwrite_value if overwrite_value else self.value
-        self.start_connection(host, port, action, value)
+    def run(self):
+        self.start_connection(self.host, self.port, self.action, self.value)
         try:
             while True:
                 events = self.sel.select(timeout=1)
@@ -53,6 +46,7 @@ class Client(object):
                     message = key.data
                     try:
                         message.process_events(mask)
+                        self._recv_info = message.request_result
                     except Exception:
                         print(
                             "main: error: exception for",
@@ -66,3 +60,10 @@ class Client(object):
             print("caught keyboard interrupt, exiting client")
         finally:
             self.sel.close()
+        
+        self.sel.close()
+        self.sock.close
+
+    @property
+    def recv_info(self):
+        return self._recv_info
