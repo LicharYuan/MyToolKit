@@ -18,8 +18,8 @@ def plot_mixkp():
     tplotor = PlotSearch(filename_t)
     print(type(plotor.data[0]))
 
-    plotor.plot_mixsearch(xkeys="tlats", ykeys_det=["car_ap", "bigcar_ap"], ykeys_kp=["recall"], ratio=1.0)
-    tplotor.plot_mixsearch(xkeys="tlats", ykeys_det=["car_ap", "bigcar_ap"], ykeys_kp=["recall"], ratio=1.0)
+    plotor.plot_mixsearch(xkeys="tlats", ykeys_det=["car_ap", "bigcar_ap"], ykeys_kp=["recall"], ratio=0.7)
+    tplotor.plot_mixsearch(xkeys="tlats", ykeys_det=["car_ap", "bigcar_ap"], ykeys_kp=["recall"], ratio=0.7)
 
 def plot_mixkpbo():
     # bo save as alist
@@ -34,8 +34,6 @@ def plot_diff_plts():
     filename = [filename_t, filename_x]
     plotor = SamePlotSearch(filename)
     plotor.plot_mixsearch(xkeys="tlats", ykeys_det=["car_ap", "bigcar_ap"], ykeys_kp=["recall"], ratio=1.0)
-
-
 
 
 if __name__ == '__main__':
