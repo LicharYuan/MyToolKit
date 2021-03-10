@@ -184,13 +184,19 @@ class SamePlotSearch(PlotSearch):
     @staticmethod    
     def plot(x, y, x_new, y_new, xlabel="latency", ylabel='AP', data=None, save_name='time', x1lim=[4, 15], x2lim=[50, 200]):
         fig, ax = plt.subplots()
-        ax_new = ax.twiny()
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-        ax.set_xlim(x1lim[0], x1lim[1])
-        ax_new.set_xlim(x2lim[0], x2lim[1])
-        ax_new.scatter(x_new, y_new, color='grey')
-        ax.scatter(x, y)            
+        ax_new = ax.twinx()
+        # ax.set_xlabel(xlabel)
+        ax.set_xlabel("Performance")
+        # ax.set_ylabel(ylabel)
+        ax.set_ylabel("Latency")
+        # ax.set_xlim(x1lim[0], x1lim[1])
+        ax.set_ylim(x1lim[0], x1lim[1])
+        # ax_new.set_xlim(x2lim[0], x2lim[1])
+        ax_new.set_ylim(x2lim[0], x2lim[1])
+        ax_new.scatter(y_new, x_new, color='grey', label="Xavier")
+        ax.scatter( y, x, label="RTX 2080Ti")            
+        ax.legend(loc=2)
+        ax_new.legend(loc=1)
         
     def plot_mixsearch(self, res_key= "eval_res" , 
                         xkeys="tlats", 

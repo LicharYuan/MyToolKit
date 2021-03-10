@@ -13,8 +13,6 @@ class Client(object):
         self.action = action
         self.value = value
 
-        
-
     def create_request(self, action, value):
         if action == "search":
             return dict(
@@ -23,10 +21,11 @@ class Client(object):
                 content=dict(action=action, value=value),
             )
         else:
+            content = f"{action} >> {value}"
             return dict(
                 type="binary/custom-client-binary-type",
                 encoding="binary",
-                content=bytes(action + value, encoding="utf-8"),
+                content=bytes(content, encoding="utf-8"),
             )
     
     def start_connection(self, host, port, action, value):

@@ -131,4 +131,5 @@ dmypy.json
 # some saved files
 ./*.jpg
 *.json
+*.txt
 

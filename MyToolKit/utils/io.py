@@ -38,3 +38,7 @@ def save_to_json(save_path, save_content, save_name="tmpjson"):
     with open(filepath, 'w') as f:
         json.dump(save_content, f)
     return filepath
+
+def append_to_txt(ori_file, new_lines):
+    with open(ori_file, 'a') as f:
+        f.write(new_lines+'\n')
