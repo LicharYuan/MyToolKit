@@ -2,7 +2,12 @@
 import pickle
 import os
 import json
-from pathlib import Path
+import pathlib
+
+def get_file_stat(filepath):
+   fname = pathlib.Path(filepath) 
+   assert fname.exists(), f'No such file: {fname}'
+   print(fname.stat()) 
 
 def load_pkl(filename):
     with open(filename, "rb") as f:
@@ -42,3 +47,4 @@ def save_to_json(save_path, save_content, save_name="tmpjson"):
 def append_to_txt(ori_file, new_lines):
     with open(ori_file, 'a') as f:
         f.write(new_lines+'\n')
+    

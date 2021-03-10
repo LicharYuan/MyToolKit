@@ -6,7 +6,6 @@ from MyToolKit.utils import append_to_txt
 import time, os
 
 class Server(object):
-    """ Multi-connection """
     def __init__(self, host, port, save=True):
         super().__init__()
         self.host = host
@@ -30,6 +29,7 @@ class Server(object):
         self.sel.register(conn, selectors.EVENT_READ, data=message)
     
     def run(self):
+        # wont close until KeyboardInterrupt 
         try:
             while True:
                 # waiting connection
@@ -71,3 +71,7 @@ class Server(object):
             print("Save failed, Not support json type")
         finally:
             print("Exit saving message")
+    
+    @property
+    def file(self):
+        return self._save_file
