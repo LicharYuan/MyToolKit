@@ -162,8 +162,6 @@ class PlotSearch(object):
 class SamePlotSearch(PlotSearch):
     """Plot Multi PKL input for SAME PKL .
     Some latency test on Mobile and some test on 2080 Ti. 
-    support plot_mixsearch (most used)
-    
     """
     def __init__(self, saved_pkl, **kwargs):
         assert isinstance(saved_pkl, list)
