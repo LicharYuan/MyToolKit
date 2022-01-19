@@ -1,12 +1,24 @@
-from termcolor import colored
+
+from datetime import date
+from functools import wraps
+import time
 import logging
 import sys
+from termcolor import colored
 import os
-from MyToolKit.utils import check_path, get_today
 import pprint
 from tabulate import tabulate
 
+
 LOGGED = {}
+
+def check_path(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+def get_today():
+    return date.today().strftime("%Y%m%d")
+
 class _ColorfulFormatter(logging.Formatter):
     def __init__(self, *args, **kwargs):
         self._root_name = kwargs.pop("root_name") + "."
@@ -71,13 +83,6 @@ def setup_logger(output=None, rank=0, color=True, name=" ", save_all_rank=False)
     LOGGED[name] = True
     return logger
 
-class SingletonType(type):
-    _instances = {}
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(SingletonType, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
-
 class MyLogger(object):
     def __init__(self, outfile=None, color=True, name='debug', saveall=True, rank=0):
         self.logger = setup_logger(outfile, rank, color, name, saveall)
@@ -112,19 +117,38 @@ class MyLogger(object):
             self.logger.info(info)
 
     def __call__(self, info):
-        self.info(info)
+        if isinstance(info, dict):
+            self.table(info)
+        else:
+            self.info(info)
 
-if __name__ == '__main__':
-    log = MyLogger(outfile='./a1.log', rank=0)
-    # if using singleton, will not intialize the logger of rank!=0, but will log all rank info
-    log.info("!!!")
-    log.error("~~~")
-    log.info("!!!")
-    log.info("!!!")
-    log.info("!!!")
-    log = MyLogger() # 
-    log = MyLogger()
-    log.info("?????")
-    log.warn("11111111111111vim1")
+def logg(outfile="./debug.log", name="debug"):
+    def _logg(func):
+        logger = MyLogger(outfile, name=name)
+        logger.info("Execute:", func.__name__)
+        @wraps(func)
+        def log_func(*args, **kwargs):
+            tic = time.time()
+            g = func.__globals__
+            g["print"] = logger
+            g["logger"] = logger
+            res = func(*args, **kwargs)
+            toc = time.time()
+            logger.info("Done , cost time:{0:2f}".format(toc-tic))
+            return res
+        return log_func
+    return _logg
 
-    
+
+if __name__ == "__main__":
+    @logg("./xx.log", name="exp-0119")
+    def test(a, b):
+        # use print or logger set output
+        print(a)
+        print(b)
+        print({"a": a})
+        logger.warn("divided by zero")
+        return a+b
+    test(1,2)
+
+

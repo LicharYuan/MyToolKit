@@ -152,7 +152,7 @@ class PlotSearch(object):
 
         latency = np.array(latency)
         performance = np.array(performance)
-        record_history = PlotSearch.plot(latency, performance, str(xkeys), str(ykeys_det+ykeys_kp)+str(ratio), self.data, fig_save_name)
+        record_history = PlotSearch.plot(latency[:20], performance[:20], str(xkeys), str(ykeys_det+ykeys_kp)+str(ratio), self.data, fig_save_name)
         plt.show()
         if record:
             print("Recoding the point you have choosen (Number: {}) to {}".format(len(record_history),"./"))
@@ -191,7 +191,7 @@ class SamePlotSearch(PlotSearch):
         ax.set_ylim(x1lim[0], x1lim[1])
         # ax_new.set_xlim(x2lim[0], x2lim[1])
         ax_new.set_ylim(x2lim[0], x2lim[1])
-        ax_new.scatter(y_new, x_new, color='grey', label="Xavier")
+        ax_new.scatter(y_new, x_new, color='green', label="Xavier")
         ax.scatter( y, x, label="RTX 2080Ti")            
         ax.legend(loc=2)
         ax_new.legend(loc=1)

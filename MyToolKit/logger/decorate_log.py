@@ -1,9 +1,8 @@
-# use decorator to log
+# 用装饰器实现 log
 
 from functools import wraps
 import time
 from MyToolKit.logger import MyLogger 
-
 
 def logg(func):
     logger = MyLogger("./debug.log")
@@ -22,7 +21,6 @@ def logg(func):
 
 
 if __name__ == "__main__":
-    # Example:
     @logg
     def test(a, b, logger=None):
         print(a)
