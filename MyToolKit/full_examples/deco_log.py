@@ -141,11 +141,15 @@ def logg(outfile="./debug.log", name="debug"):
 
 
 if __name__ == "__main__":
+    def inner():
+        print("inner")
+
     @logg("./xx.log", name="exp-0119")
     def test(a, b):
         # use print or logger set output
         print(a)
         print(b)
+        inner() # inner is also record
         print({"a": a})
         logger.warn("divided by zero")
         return a+b
